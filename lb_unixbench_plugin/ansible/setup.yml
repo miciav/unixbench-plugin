@@ -1,0 +1,47 @@
+---
+- name: Build UnixBench from source
+  hosts: all
+  become: true
+  tasks:
+    - name: Install build dependencies
+      apt:
+        name:
+          - build-essential
+          - libx11-dev
+          - libgl1-mesa-dev
+          - libxext-dev
+          - wget
+        state: present
+        update_cache: true
+
+    - name: Ensure build workspace exists
+      file:
+        path: /tmp/unixbench-src
+        state: directory
+        mode: "0755"
+
+    - name: Download UnixBench tarball
+      get_url:
+        url: http://byte-unixbench.googlecode.com/files/UnixBench5.1.3.tgz
+        dest: /tmp/unixbench-src/UnixBench5.1.3.tgz
+        mode: "0644"
+
+    - name: Extract UnixBench
+      unarchive:
+        src: /tmp/unixbench-src/UnixBench5.1.3.tgz
+        dest: /tmp/unixbench-src
+        remote_src: true
+
+    - name: Build UnixBench
+      make:
+        chdir: /tmp/unixbench-src/UnixBench
+
+    - name: Install UnixBench to /opt/UnixBench
+      command: mv /tmp/unixbench-src/UnixBench /opt/UnixBench
+      args:
+        creates: /opt/UnixBench/Run
+
+    - name: Cleanup build directory
+      file:
+        path: /tmp/unixbench-src
+        state: absent

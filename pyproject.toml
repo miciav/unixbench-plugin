@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lb-unixbench-plugin"
+version = "0.1.0"
+description = "UnixBench workload plugin for linux-benchmark-lib"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+  { name = "linux-benchmark contributors" }
+]
+dependencies = [
+  "linux-benchmark-lib>=0.10.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0.0",
+]
+
+[project.entry-points."linux_benchmark.workloads"]
+unixbench = "lb_unixbench_plugin.plugin:PLUGIN"
+
+[tool.black]
+line-length = 88
