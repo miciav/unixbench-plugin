@@ -10,6 +10,8 @@ RUN apt-get update \
         libgl1-mesa-dev \
         libxext-dev \
         wget \
+        procps \
+        sysstat \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
