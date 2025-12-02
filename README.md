@@ -18,14 +18,15 @@ Assicurati che UnixBench sia compilato in `/opt/UnixBench` o aggiorna `workdir` 
 ```bash
 sudo apt-get update
 sudo apt-get install -y build-essential libx11-dev libgl1-mesa-dev libxext-dev wget
-wget http://byte-unixbench.googlecode.com/files/UnixBench5.1.3.tgz
-tar xvfz UnixBench5.1.3.tgz
-sudo mv UnixBench /opt/UnixBench
+wget -O unixbench.tgz https://github.com/kdlucas/byte-unixbench/archive/refs/tags/v5.1.3.tar.gz
+tar xvfz unixbench.tgz
+sudo mv byte-unixbench-5.1.3 /opt/UnixBench
 cd /opt/UnixBench && ./Run
 ```
 Oppure costruisci l’immagine Docker del plugin:
 ```bash
-docker build -t lb-unixbench -f lb_unixbench_plugin/Dockerfile lb_unixbench_plugin
+docker build -t lb-unixbench -f lb_unixbench_plugin/Dockerfile .
+docker run --rm lb-unixbench ./Run --help
 ```
 
 ## Configurazione

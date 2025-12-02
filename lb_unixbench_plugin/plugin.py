@@ -57,6 +57,9 @@ class UnixBenchGenerator(BaseGenerator):
         if not run_path.exists():
             logger.error("UnixBench Run script not found at %s", run_path)
             return False
+        if not os.access(run_path, os.X_OK):
+            logger.error("UnixBench Run script at %s is not executable", run_path)
+            return False
         return True
 
     def _run_command(self) -> None:

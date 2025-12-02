@@ -1,8 +1,8 @@
-FROM ubuntu:22.04
+FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
-WORKDIR /tmp
 
+# Build dependencies for UnixBench
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
@@ -12,14 +12,24 @@ RUN apt-get update \
         wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Build UnixBench from source
-RUN wget http://byte-unixbench.googlecode.com/files/UnixBench5.1.3.tgz \
-    && tar xvfz UnixBench5.1.3.tgz \
-    && mv UnixBench /opt/UnixBench \
+WORKDIR /tmp
+
+# Build UnixBench from source (Ubuntu package is outdated)
+RUN wget -O unixbench.tgz https://github.com/kdlucas/byte-unixbench/archive/refs/tags/v5.1.3.tar.gz \
+    && tar xvfz unixbench.tgz \
+    && mv byte-unixbench-5.1.3 /opt/UnixBench \
     && cd /opt/UnixBench && make \
     && rm -rf /tmp/*
 
-WORKDIR /opt/UnixBench
+ENV PATH="/usr/sbin:$PATH"
 
-# Default command: show help
-CMD ["./Run", "--help"]
+# Install core Python deps used by the library
+RUN pip install --no-cache-dir psutil typer rich pyyaml InquirerPy pandas numpy jc
+
+WORKDIR /app
+
+COPY . /app
+
+# Install plugin without pulling linux-benchmark-lib from PyPI; host code is mounted at runtime.
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir --no-deps .

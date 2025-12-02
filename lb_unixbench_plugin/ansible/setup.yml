@@ -22,7 +22,7 @@
 
     - name: Download UnixBench tarball
       get_url:
-        url: http://byte-unixbench.googlecode.com/files/UnixBench5.1.3.tgz
+        url: https://github.com/kdlucas/byte-unixbench/archive/refs/tags/v5.1.3.tar.gz
         dest: /tmp/unixbench-src/UnixBench5.1.3.tgz
         mode: "0644"
 
@@ -34,10 +34,10 @@
 
     - name: Build UnixBench
       make:
-        chdir: /tmp/unixbench-src/UnixBench
+        chdir: /tmp/unixbench-src/byte-unixbench-5.1.3
 
     - name: Install UnixBench to /opt/UnixBench
-      command: mv /tmp/unixbench-src/UnixBench /opt/UnixBench
+      command: mv /tmp/unixbench-src/byte-unixbench-5.1.3 /opt/UnixBench
       args:
         creates: /opt/UnixBench/Run
 

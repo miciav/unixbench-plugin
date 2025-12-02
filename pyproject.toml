@@ -24,5 +24,8 @@ dev = [
 [project.entry-points."linux_benchmark.workloads"]
 unixbench = "lb_unixbench_plugin.plugin:PLUGIN"
 
+[tool.setuptools.package-data]
+lb_unixbench_plugin = ["Dockerfile", "ansible/**/*"]
+
 [tool.black]
 line-length = 88
