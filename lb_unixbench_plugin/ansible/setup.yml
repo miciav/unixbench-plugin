@@ -10,6 +10,9 @@
           - libx11-dev
           - libgl1-mesa-dev
           - libxext-dev
+          - sysvinit-utils
+          - mesa-utils
+          - locales
           - wget
         state: present
         update_cache: true
@@ -34,12 +37,26 @@
 
     - name: Build UnixBench
       make:
-        chdir: /tmp/unixbench-src/byte-unixbench-5.1.3
+        chdir: /tmp/unixbench-src/byte-unixbench-5.1.3/UnixBench
 
     - name: Install UnixBench to /opt/UnixBench
-      command: mv /tmp/unixbench-src/byte-unixbench-5.1.3 /opt/UnixBench
+      command: mv /tmp/unixbench-src/byte-unixbench-5.1.3/UnixBench /opt/UnixBench
       args:
         creates: /opt/UnixBench/Run
+
+    - name: Ensure en_US.UTF-8 locale exists
+      command: locale-gen en_US.UTF-8
+      args:
+        creates: /usr/lib/locale/en_US.utf8
+
+    - name: Ensure 3dinfo stub exists (if not provided by mesa-utils)
+      copy:
+        dest: /usr/local/bin/3dinfo
+        mode: "0755"
+        content: |
+          #!/bin/sh
+          exit 0
+      when: ansible_facts.os_family == "Debian" and (ansible_facts.packages.get('mesa-utils') is not defined)
 
     - name: Cleanup build directory
       file:

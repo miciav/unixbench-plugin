@@ -12,7 +12,15 @@ RUN apt-get update \
         wget \
         procps \
         sysstat \
+        sysvinit-utils \
+        mesa-utils \
+        locales \
     && rm -rf /var/lib/apt/lists/*
+
+# Generate UTF-8 locale to silence UnixBench warnings
+RUN sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen \
+    && locale-gen en_US.UTF-8
+ENV LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 
 WORKDIR /tmp
 
@@ -21,6 +29,7 @@ RUN wget -O unixbench.tgz https://github.com/kdlucas/byte-unixbench/archive/refs
     && tar xvfz unixbench.tgz \
     && mv byte-unixbench-5.1.3/UnixBench /opt/UnixBench \
     && cd /opt/UnixBench && make \
+    && command -v 3dinfo >/dev/null 2>&1 || (echo '#!/bin/sh' > /usr/local/bin/3dinfo && echo 'exit 0' >> /usr/local/bin/3dinfo && chmod +x /usr/local/bin/3dinfo) \
     && rm -rf /tmp/*
 
 ENV PATH="/usr/sbin:$PATH"

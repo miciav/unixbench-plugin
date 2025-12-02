@@ -5,7 +5,7 @@ Plugin standalone per eseguire [UnixBench 5.1.3](https://github.com/kdlucas/byte
 ## Requisiti
 - Python 3.12+
 - `linux-benchmark-lib>=0.10.0`
-- Tool di build: `build-essential`, `libx11-dev`, `libgl1-mesa-dev`, `libxext-dev`, `wget`
+- Tool di build e runtime: `build-essential`, `libx11-dev`, `libgl1-mesa-dev`, `libxext-dev`, `wget`, `sysvinit-utils`, `mesa-utils`, `locales`
 
 ## Installazione plugin
 ```bash
@@ -17,7 +17,8 @@ Assicurati che UnixBench sia compilato in `/opt/UnixBench` o aggiorna `workdir` 
 ## Build UnixBench da sorgente (host o Docker)
 ```bash
 sudo apt-get update
-sudo apt-get install -y build-essential libx11-dev libgl1-mesa-dev libxext-dev wget
+sudo apt-get install -y build-essential libx11-dev libgl1-mesa-dev libxext-dev wget sysvinit-utils mesa-utils locales
+sudo locale-gen en_US.UTF-8
 wget -O unixbench.tgz https://github.com/kdlucas/byte-unixbench/archive/refs/tags/v5.1.3.tar.gz
 tar xvfz unixbench.tgz
 sudo mv byte-unixbench-5.1.3/UnixBench /opt/UnixBench
