@@ -20,7 +20,7 @@ sudo apt-get update
 sudo apt-get install -y build-essential libx11-dev libgl1-mesa-dev libxext-dev wget
 wget -O unixbench.tgz https://github.com/kdlucas/byte-unixbench/archive/refs/tags/v5.1.3.tar.gz
 tar xvfz unixbench.tgz
-sudo mv byte-unixbench-5.1.3 /opt/UnixBench
+sudo mv byte-unixbench-5.1.3/UnixBench /opt/UnixBench
 cd /opt/UnixBench && ./Run
 ```
 Oppure costruisci l’immagine Docker del plugin:

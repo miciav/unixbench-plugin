@@ -17,7 +17,7 @@ WORKDIR /tmp
 # Build UnixBench from source (Ubuntu package is outdated)
 RUN wget -O unixbench.tgz https://github.com/kdlucas/byte-unixbench/archive/refs/tags/v5.1.3.tar.gz \
     && tar xvfz unixbench.tgz \
-    && mv byte-unixbench-5.1.3 /opt/UnixBench \
+    && mv byte-unixbench-5.1.3/UnixBench /opt/UnixBench \
     && cd /opt/UnixBench && make \
     && rm -rf /tmp/*
 
