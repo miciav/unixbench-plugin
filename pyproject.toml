@@ -13,7 +13,6 @@ authors = [
   { name = "linux-benchmark contributors" }
 ]
 dependencies = [
-  "linux-benchmark-lib>=0.10.0",
 ]
 
 [project.optional-dependencies]

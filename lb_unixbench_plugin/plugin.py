@@ -13,8 +13,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Type
 
-from linux_benchmark_lib.plugin_system.base_generator import BaseGenerator
-from linux_benchmark_lib.plugin_system.interface import WorkloadIntensity, WorkloadPlugin
+from lb_runner.plugin_system.base_generator import BaseGenerator
+from lb_runner.plugin_system.interface import WorkloadIntensity, WorkloadPlugin
 
 
 logger = logging.getLogger(__name__)

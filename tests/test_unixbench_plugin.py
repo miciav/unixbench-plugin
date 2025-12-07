@@ -50,6 +50,7 @@ def test_validate_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     workdir.mkdir()
     run_file = workdir / "Run"
     run_file.write_text("#!/bin/sh\necho ok\n")
+    run_file.chmod(0o755)
 
     cfg = UnixBenchConfig(workdir=workdir)
     gen = UnixBenchGenerator(cfg)
@@ -71,26 +72,24 @@ def test_run_command_collects_output(monkeypatch: pytest.MonkeyPatch, tmp_path: 
 
     popen_calls = {}
 
-    class DummyProc:
-        def __init__(self):
-            self.stdout = SimpleNamespace(readline=lambda: "", __iter__=lambda self: iter([]))
-            self._poll = 0
-
-        def poll(self):
-            return self._poll
-
-        def wait(self, timeout=None):
-            return 0
-
     def fake_popen(cmd, cwd=None, stdout=None, stderr=None, text=None, bufsize=None):
         popen_calls["cmd"] = cmd
         popen_calls["cwd"] = cwd
-        proc = DummyProc()
-        proc.stdout = SimpleNamespace(readline=lambda: "hello\n")
-        proc._poll = 0
-        proc.wait = lambda: 0
-        proc.poll = lambda: None  # emulate running until readline returns then poll returns None?
-        return proc
+
+        lines = iter(["hello\n", ""])  # one line then EOF
+        polls = iter([None, 0])  # running then exited
+
+        class DummyProc:
+            def __init__(self):
+                self.stdout = SimpleNamespace(readline=lambda: next(lines, ""))
+
+            def poll(self):
+                return next(polls, 0)
+
+            def wait(self, timeout=None):
+                return 0
+
+        return DummyProc()
 
     monkeypatch.setattr("subprocess.Popen", fake_popen)
 
