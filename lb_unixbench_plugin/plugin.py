@@ -9,27 +9,27 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
-from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional, Type
 
+from pydantic import Field
+
 from lb_runner.plugin_system.base_generator import BaseGenerator
-from lb_runner.plugin_system.interface import WorkloadIntensity, WorkloadPlugin
+from lb_runner.plugin_system.interface import BasePluginConfig, WorkloadIntensity, WorkloadPlugin
 
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class UnixBenchConfig:
+class UnixBenchConfig(BasePluginConfig):
     """Configuration for UnixBench workload."""
 
-    threads: int = 1  # passed as -c to Run
-    iterations: int = 1  # -i iterations
-    tests: List[str] = field(default_factory=list)  # if empty, run default suite
-    workdir: Path = Path("/opt/UnixBench")  # where Run lives
-    extra_args: List[str] = field(default_factory=list)
-    debug: bool = False
+    threads: int = Field(default=1, gt=0, description="Passed as -c to Run.")
+    iterations: int = Field(default=1, gt=0, description="Passed as -i to Run.")
+    tests: list[str] = Field(default_factory=list, description="If empty, run default suite.")
+    workdir: Path = Field(default=Path("/opt/UnixBench"), description="Where Run lives.")
+    extra_args: list[str] = Field(default_factory=list)
+    debug: bool = Field(default=False)
 
 
 class UnixBenchGenerator(BaseGenerator):
@@ -128,7 +128,9 @@ class UnixBenchPlugin(WorkloadPlugin):
     def config_cls(self) -> Type[UnixBenchConfig]:
         return UnixBenchConfig
 
-    def create_generator(self, config: UnixBenchConfig) -> UnixBenchGenerator:
+    def create_generator(self, config: UnixBenchConfig | dict) -> UnixBenchGenerator:
+        if isinstance(config, dict):
+            config = UnixBenchConfig(**config)
         return UnixBenchGenerator(config)
 
     def get_preset_config(self, level: WorkloadIntensity) -> Optional[UnixBenchConfig]:
