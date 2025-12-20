@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lb-unixbench-plugin"
-version = "0.1.0"
+version = "0.2.0"
 description = "UnixBench workload plugin for linux-benchmark-lib"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -25,7 +25,7 @@ dev = [
 unixbench = "lb_unixbench_plugin.plugin:PLUGIN"
 
 [tool.setuptools.package-data]
-lb_unixbench_plugin = ["Dockerfile", "ansible/**/*"]
+lb_unixbench_plugin = ["ansible/**/*"]
 
 [tool.black]
 line-length = 88

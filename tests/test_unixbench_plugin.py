@@ -72,7 +72,7 @@ def test_run_command_collects_output(monkeypatch: pytest.MonkeyPatch, tmp_path: 
 
     popen_calls = {}
 
-    def fake_popen(cmd, cwd=None, stdout=None, stderr=None, text=None, bufsize=None):
+    def fake_popen(cmd, cwd=None, stdout=None, stderr=None, text=None, **_kwargs):
         popen_calls["cmd"] = cmd
         popen_calls["cwd"] = cwd
 

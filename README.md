@@ -4,7 +4,7 @@ Plugin standalone per eseguire [UnixBench 5.1.3](https://github.com/kdlucas/byte
 
 ## Requisiti
 - Python 3.12+
-- `linux-benchmark-lib>=0.10.0`
+- `linux-benchmark-lib` installato nella stessa virtualenv
 - Tool di build e runtime: `build-essential`, `libx11-dev`, `libgl1-mesa-dev`, `libxext-dev`, `wget`, `sysvinit-utils`, `mesa-utils`, `locales`
 
 ## Installazione plugin
@@ -24,12 +24,6 @@ tar xvfz unixbench.tgz
 sudo mv byte-unixbench-5.1.3/UnixBench /opt/UnixBench
 cd /opt/UnixBench && ./Run
 ```
-Oppure costruisci l’immagine Docker del plugin:
-```bash
-docker build -t lb-unixbench -f lb_unixbench_plugin/Dockerfile .
-docker run --rm lb-unixbench ./Run --help
-```
-
 ## Configurazione
 `UnixBenchConfig` campi principali:
 - `threads`: concorrenza (`-c`) – default 1
@@ -38,6 +32,7 @@ docker run --rm lb-unixbench ./Run --help
 - `workdir`: path che contiene `Run` (default `/opt/UnixBench`)
 - `extra_args`: argomenti aggiuntivi per `Run`
 - `debug`: aggiunge `--verbose`
+- `timeout_buffer` (ereditato): finestra extra per terminare in sicurezza se `Run` resta appeso
 
 Presets intensità:
 - **low**: 1 thread, 1 iterazione

@@ -66,6 +66,7 @@ class UnixBenchGenerator(BaseGenerator):
         cmd = self._build_command()
         run_dir = self.config.workdir
         logger.info("Running UnixBench in %s: %s", run_dir, " ".join(cmd))
+        safety_timeout = self.config.timeout_buffer + max(120, 60 * self.config.iterations)
         try:
             self._process = subprocess.Popen(
                 cmd,
@@ -86,16 +87,30 @@ class UnixBenchGenerator(BaseGenerator):
                     print(line, end="", flush=True)
                     output_lines.append(line)
 
-            rc = self._process.wait() if self._process else -1
+            rc = (
+                self._process.wait(timeout=safety_timeout)
+                if self._process
+                else -1
+            )
             stdout = "".join(output_lines)
             self._result = {
                 "stdout": stdout,
                 "stderr": "",
                 "returncode": rc,
                 "command": " ".join(cmd),
+                "max_retries": self.config.max_retries,
+                "tags": self.config.tags,
             }
             if rc != 0:
                 logger.error("UnixBench failed with return code %s", rc)
+        except subprocess.TimeoutExpired:
+            logger.error("UnixBench timed out after %ss; killing process", safety_timeout)
+            self._result = {
+                "error": f"Timeout after {safety_timeout}s",
+                "returncode": -1,
+                "command": " ".join(cmd),
+            }
+            self._stop_workload()
         except Exception as exc:  # pragma: no cover - defensive
             logger.error("Error running UnixBench: %s", exc)
             self._result = {"error": str(exc)}
@@ -151,7 +166,8 @@ class UnixBenchPlugin(WorkloadPlugin):
         return ["make", "gcc", "wget"]
 
     def get_dockerfile_path(self) -> Optional[Path]:
-        return Path(__file__).parent / "Dockerfile"
+        path = Path(__file__).parent / "Dockerfile"
+        return path if path.exists() else None
 
     def get_ansible_setup_path(self) -> Optional[Path]:
         return Path(__file__).parent / "ansible" / "setup.yml"
