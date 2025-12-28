@@ -1,4 +1,3 @@
-from types import SimpleNamespace
 from pathlib import Path
 
 import pytest
@@ -76,18 +75,12 @@ def test_run_command_collects_output(monkeypatch: pytest.MonkeyPatch, tmp_path: 
         popen_calls["cmd"] = cmd
         popen_calls["cwd"] = cwd
 
-        lines = iter(["hello\n", ""])  # one line then EOF
-        polls = iter([None, 0])  # running then exited
-
         class DummyProc:
             def __init__(self):
-                self.stdout = SimpleNamespace(readline=lambda: next(lines, ""))
+                self.returncode = 0
 
-            def poll(self):
-                return next(polls, 0)
-
-            def wait(self, timeout=None):
-                return 0
+            def communicate(self, timeout=None):
+                return "hello\n", ""
 
         return DummyProc()
 

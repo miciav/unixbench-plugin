@@ -10,12 +10,16 @@ import logging
 import os
 import subprocess
 from pathlib import Path
-from typing import List, Optional, Type
+from typing import Any, List, Optional, Type
 
 from pydantic import Field
 
-from lb_plugins.base_generator import BaseGenerator
-from lb_plugins.interface import BasePluginConfig, WorkloadIntensity, WorkloadPlugin
+from lb_plugins.api import (
+    BasePluginConfig,
+    CommandGenerator,
+    WorkloadIntensity,
+    WorkloadPlugin,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -32,13 +36,11 @@ class UnixBenchConfig(BasePluginConfig):
     debug: bool = Field(default=False)
 
 
-class UnixBenchGenerator(BaseGenerator):
+class UnixBenchGenerator(CommandGenerator):
     """Run UnixBench as a workload generator."""
 
     def __init__(self, config: UnixBenchConfig, name: str = "UnixBenchGenerator"):
-        super().__init__(name)
-        self.config = config
-        self._process: subprocess.Popen[str] | None = None
+        super().__init__(name, config)
 
     def _build_command(self) -> List[str]:
         cmd: List[str] = ["./Run"]
@@ -51,6 +53,21 @@ class UnixBenchGenerator(BaseGenerator):
         cmd.extend(self.config.extra_args)
         return cmd
 
+    def _popen_kwargs(self) -> dict[str, Any]:
+        return {
+            "cwd": self.config.workdir,
+            "stdout": subprocess.PIPE,
+            "stderr": subprocess.STDOUT,
+            "text": True,
+            "bufsize": 1,
+        }
+
+    def _timeout_seconds(self) -> Optional[int]:
+        return self.config.timeout_buffer + max(120, 60 * self.config.iterations)
+
+    def _log_command(self, cmd: list[str]) -> None:
+        logger.info("Running UnixBench in %s: %s", self.config.workdir, " ".join(cmd))
+
     def _validate_environment(self) -> bool:
         # Check Run exists in workdir
         run_path = self.config.workdir / "Run"
@@ -62,70 +79,14 @@ class UnixBenchGenerator(BaseGenerator):
             return False
         return True
 
-    def _run_command(self) -> None:
-        cmd = self._build_command()
-        run_dir = self.config.workdir
-        logger.info("Running UnixBench in %s: %s", run_dir, " ".join(cmd))
-        safety_timeout = self.config.timeout_buffer + max(120, 60 * self.config.iterations)
-        try:
-            self._process = subprocess.Popen(
-                cmd,
-                cwd=run_dir,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-            )
-            output_lines: List[str] = []
-            while True:
-                if self._process is None:
-                    break
-                line = self._process.stdout.readline() if self._process.stdout else ""
-                if not line and self._process.poll() is not None:
-                    break
-                if line:
-                    print(line, end="", flush=True)
-                    output_lines.append(line)
-
-            rc = (
-                self._process.wait(timeout=safety_timeout)
-                if self._process
-                else -1
-            )
-            stdout = "".join(output_lines)
-            self._result = {
-                "stdout": stdout,
-                "stderr": "",
-                "returncode": rc,
-                "command": " ".join(cmd),
-                "max_retries": self.config.max_retries,
-                "tags": self.config.tags,
-            }
-            if rc != 0:
-                logger.error("UnixBench failed with return code %s", rc)
-        except subprocess.TimeoutExpired:
-            logger.error("UnixBench timed out after %ss; killing process", safety_timeout)
-            self._result = {
-                "error": f"Timeout after {safety_timeout}s",
-                "returncode": -1,
-                "command": " ".join(cmd),
-            }
-            self._stop_workload()
-        except Exception as exc:  # pragma: no cover - defensive
-            logger.error("Error running UnixBench: %s", exc)
-            self._result = {"error": str(exc)}
-        finally:
-            self._process = None
-            self._is_running = False
-
-    def _stop_workload(self) -> None:
-        proc = self._process
-        if proc and proc.poll() is None:
-            proc.terminate()
-            try:
-                proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                proc.kill()
+    def _log_failure(
+        self, returncode: int, stdout: str, stderr: str, cmd: list[str]
+    ) -> None:
+        output = stdout or stderr
+        if output:
+            logger.error("UnixBench failed with return code %s: %s", returncode, output)
+        else:
+            logger.error("UnixBench failed with return code %s", returncode)
 
 
 class UnixBenchPlugin(WorkloadPlugin):
